@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    app: {{ template "fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+data:
+  redis.conf: |+
+    protected-mode no
+    port 6379
+    tcp-backlog 30000
+    timeout 0
+    tcp-keepalive 300
+    loglevel notice 
+    databases 16
+    always-show-logo yes
+    save ""
+    stop-writes-on-bgsave-error no
+    rdbcompression no
+    rdbchecksum no
+    dbfilename dump.rdb
+    slave-serve-stale-data yes
+    slave-read-only yes
+    repl-diskless-sync yes
+    repl-diskless-sync-delay 0
+    repl-disable-tcp-nodelay no
+    slave-priority 100
+    maxclients 30000
+    lazyfree-lazy-eviction yes
+    lazyfree-lazy-expire yes
+    lazyfree-lazy-server-del yes
+    slave-lazy-flush no
+    appendonly no
+    appendfilename "appendonly.aof"
+    appendfsync no
+    no-appendfsync-on-rewrite no
+    auto-aof-rewrite-percentage 0
+    auto-aof-rewrite-min-size 64mb
+    aof-load-truncated yes
+    aof-use-rdb-preamble no
+    lua-time-limit 5000
+    hz 100
+    aof-rewrite-incremental-fsync no

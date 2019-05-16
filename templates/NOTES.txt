@@ -1,0 +1,9 @@
+The Twemproxy cluster is comprised of {{ .Values.twemproxy.replicaCount }} Redis pods and {{ .Values.twemproxy.replicaCount }} proxies. Each instance is accessible within the cluster through:
+
+    <pod-name>.{{ template "fullname" . }}
+
+To connect to your Redis instances:
+
+1. Open a connection to one of the Redis pods
+
+    redis-cli -h {{ template "fullname" . }}-0.{{ template "fullname" . }}

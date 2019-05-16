@@ -1,0 +1,39 @@
+{{- $root := . -}}
+{{- range $i, $e := until ( .Values.redis.replicaCount | int) }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "fullname" $root }}-{{ $e }}
+  labels:
+    app: {{ template "fullname" $root }}-{{ $e }}
+spec:
+  ports:
+  - name: {{ template "fullname" $root }}-{{ $e }}
+    port: 6379
+  type: ClusterIP
+  selector:
+    statefulset.kubernetes.io/pod-name: {{ template "fullname" $root }}-{{ $e }}
+{{- end}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+  {{ if eq .Values.cloudProvider "azure" }}
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+  {{ else }}
+    cloud.google.com/load-balancer-type: "Internal"
+  {{ end }}
+  name: {{ template "twemproxy" . }}
+  labels:
+    app: {{ template "twemproxy" . }}
+spec:
+  type: {{ .Values.twemproxy.service.type }}
+  ports:
+    - port: 6379
+      targetPort: 6379
+      protocol: TCP
+      name: {{ template "twemproxy" . }}
+  selector:
+    app: {{ template "twemproxy" . }}

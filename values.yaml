@@ -1,0 +1,14 @@
+redisImage: redis:5.0-rc
+twemImage: gojektech/twemproxy:0.4.1
+imagePullSecrets: registrykey
+
+twemproxy:
+  replicaCount: 2
+  terminationGracePeriodSeconds: 3
+  service:
+    type: LoadBalancer
+
+redis:
+  replicaCount: 4
+  
+cloudProvider: Google
