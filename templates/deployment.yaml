@@ -34,11 +34,11 @@ spec:
             periodSeconds: 20
           resources:
             requests:
-              memory: "1900Mi"
-              cpu: "640m"
+              memory: "1700Mi"
+              cpu: "500m"
             limits:
-              memory: "1900Mi"
-              cpu: "640m"
+              memory: "1700Mi"
+              cpu: "500m"
           env:
             - name: "SERVERS"
               value: "{{- $root := . -}}{{ template "fullname" $root }}-0:6379:1{{- range $i, $e := until ( sub ( .Values.twemproxy.replicaCount | int) 1 | int ) }},{{ template "fullname" $root }}-{{ add $e 1 }}:6379:1{{- end -}}"
