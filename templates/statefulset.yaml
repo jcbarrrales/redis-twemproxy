@@ -61,11 +61,11 @@ spec:
             - ping       
         resources:
           requests:
-            memory: "1700Mi"
-            cpu: "500m"
+            memory: "1500Mi"
+            cpu: "400m"
           limits:
-            memory: "1700Mi"
-            cpu: "500m"    
+            memory: "1500Mi"
+            cpu: "400m"    
         ports:
         - name: {{ template "fullname" . }}
           containerPort: 6379
