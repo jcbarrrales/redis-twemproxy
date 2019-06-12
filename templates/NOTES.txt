@@ -1,4 +1,4 @@
-The Twemproxy cluster is comprised of {{ .Values.twemproxy.replicaCount }} Redis pods and {{ .Values.twemproxy.replicaCount }} proxies. Each instance is accessible within the cluster through:
+The Twemproxy cluster is comprised of {{ .Values.redis.replicaCount }} Redis pods and {{ .Values.twemproxy.replicaCount }} proxies. Each instance is accessible within the cluster through:
 
     <pod-name>.{{ template "fullname" . }}
 

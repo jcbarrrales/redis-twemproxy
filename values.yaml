@@ -3,6 +3,7 @@ twemImage: gojektech/twemproxy:0.4.1
 imagePullSecrets: registrykey
 
 twemproxy:
+  enabled: true
   replicaCount: 2
   terminationGracePeriodSeconds: 3
   service:
