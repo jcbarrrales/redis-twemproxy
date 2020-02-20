@@ -10,6 +10,7 @@ metadata:
   annotations:
     {{- toYaml .Values.redis.annotations | nindent 4 }}
 spec:
+  podManagementPolicy: Parallel
   serviceName: {{ template "fullname" . }}
   replicas: {{ .Values.redis.replicaCount }}
   template:
