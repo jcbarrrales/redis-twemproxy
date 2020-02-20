@@ -9,39 +9,46 @@ metadata:
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
     release: "{{ .Release.Name }}"
     heritage: "{{ .Release.Service }}"
+  annotations:
+    {{- toYaml .Values.twemproxy.annotations | nindent 4 }}
 spec:
   replicas: {{ .Values.twemproxy.replicaCount }}
   template:
     metadata:
       labels:
         app: {{ template "twemproxy" . }}
+      annotations:
+      {{- toYaml .Values.twemproxy.annotations | nindent 8 }}
     spec:
+      {{- if .Values.nodeSelector }}
       nodeSelector:
-        tier: redis
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations:
+        {{- toYaml .Values.tolerations | nindent 8 }}
+      {{- end }}
       containers:
-        - name: {{ template "twemproxy" . }}
-          image: {{ .Values.twemImage }}
+        - image: jcbarrales/redis_exporter
+          imagePullPolicy: Always
+          name: redis-exporter
           ports:
-            - containerPort: 6379
+          - containerPort: {{ .Values.twemproxy.exporter.port }}
+            protocol: TCP
+          resources: 
+          {{- toYaml .Values.twemproxy.exporter.resources | nindent 12 }}
+        - name: {{ template "twemproxy" . }}
+          image: {{ .Values.twemproxy.image }}
+          ports:
+          - containerPort: 6379
           livenessProbe:
-            tcpSocket:
-              port: 6379
-            initialDelaySeconds: 5
-            periodSeconds: 10
+          {{- toYaml .Values.twemproxy.livenessProbe | nindent 12 }}
           readinessProbe:
-            tcpSocket:
-              port: 6379
-            initialDelaySeconds: 15
-            periodSeconds: 20
-          resources:
-            requests:
-              memory: "1700Mi"
-              cpu: "500m"
-            limits:
-              memory: "1700Mi"
-              cpu: "500m"
+          {{- toYaml .Values.twemproxy.readinessProbe | nindent 12 }}     
+          resources: 
+          {{- toYaml .Values.twemproxy.resources | nindent 12 }}
           env:
             - name: "SERVERS"
-              value: "{{- $root := . -}}{{ template "fullname" $root }}-0:6379:1{{- range $i, $e := until ( sub ( .Values.twemproxy.replicaCount | int) 1 | int ) }},{{ template "fullname" $root }}-{{ add $e 1 }}:6379:1{{- end -}}"
+              value: "{{- $root := . -}}{{ template "fullname" $root }}-0:6379:1{{- range $i, $e := until ( sub ( .Values.redis.replicaCount | int) 1 | int ) }},{{ template "fullname" $root }}-{{ add $e 1 }}:6379:1{{- end -}}"
 ---
  {{ end }}

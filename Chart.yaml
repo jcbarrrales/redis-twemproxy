@@ -1,4 +1,4 @@
-name: proxy
+name: redis
 version: 0.4.0
 appVersion: 5.0-rc
 description: Twemproxy Cluster

@@ -1,15 +1,90 @@
-redisImage: redis:5.0-rc
-twemImage: gojektech/twemproxy:0.4.1
+
 imagePullSecrets: registrykey
 
 twemproxy:
+  image: gojektech/twemproxy:0.4.1
   enabled: true
-  replicaCount: 2
+  replicaCount: 12
   terminationGracePeriodSeconds: 3
+  exporter:
+    port: 9121
+    resources:
+      requests:
+        cpu: 128m
+        memory: 256Mi
+  annotations:
+    prometheus.io/port: "9121"
+    prometheus.io/scrape: "true"
   service:
     type: LoadBalancer
+  livenessProbe:
+    tcpSocket:
+      port: 6379
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  readinessProbe:
+    tcpSocket:
+      port: 6379
+    initialDelaySeconds: 15
+    periodSeconds: 20
+  resources:
+    requests:
+      cpu: 100m
+      memory: 200Mi
+    limits:
+      cpu: 4
+      memory: 13000Mi
 
 redis:
-  replicaCount: 4
-  
-cloudProvider: Google
+  image: redis:5.0-rc
+  replicaCount: 6
+  service:
+    annotations:
+      cloud.google.com/load-balancer-type: "Internal"
+  exporter:
+    port: 9121
+    resources:
+      requests:
+        cpu: 128m
+        memory: 256Mi
+  annotations:
+    prometheus.io/port: "9121"
+    prometheus.io/scrape: "true"
+  resources:
+    requests:
+      cpu: 1
+      memory: 6Gi
+    limits: 
+      cpu: 1
+      memory: 6Gi
+  readinessProbe:
+    initialDelaySeconds: 15
+    periodSeconds: 15
+    timeoutSeconds: 15
+    successThreshold: 1
+    failureThreshold: 1
+    exec:
+      command:
+      - redis-cli
+      - -p 
+      - "6379"
+      - ping       
+  livenessProbe:
+    initialDelaySeconds: 15
+    periodSeconds: 15
+    timeoutSeconds: 15
+    successThreshold: 1
+    failureThreshold: 1
+    exec:
+      command:
+      - redis-cli
+      - -p 
+      - "6379"
+      - ping
+tolerations:
+- effect: NoSchedule
+  key: tier
+  operator: "Exists"
+  effect: "NoSchedule"
+nodeSelector:
+  tier: redis   

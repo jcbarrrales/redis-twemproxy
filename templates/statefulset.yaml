@@ -7,6 +7,8 @@ metadata:
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
     release: "{{ .Release.Name }}"
     heritage: "{{ .Release.Service }}"
+  annotations:
+    {{- toYaml .Values.redis.annotations | nindent 4 }}
 spec:
   serviceName: {{ template "fullname" . }}
   replicas: {{ .Values.redis.replicaCount }}
@@ -14,20 +16,36 @@ spec:
     metadata:
       labels:
         app: {{ template "fullname" . }}
+      annotations:
+      {{- toYaml .Values.redis.annotations | nindent 8 }}
     spec:
       terminationGracePeriodSeconds: {{ .Values.twemproxy.terminationGracePeriodSeconds }}
       imagePullSecrets:
-            - name: {{ .Values.imagePullSecrets }}
+      - name: {{ .Values.imagePullSecrets }}
       volumes:
         - name: conf
           configMap:
-            name: {{ template "fullname" . }}
+            name: {{ template "fullname" . }}-configmap
             defaultMode: 0755 
+      {{- if .Values.nodeSelector }}
       nodeSelector:
-        tier: redis
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations:
+        {{- toYaml .Values.tolerations | nindent 8 }}
+      {{- end }}
       containers:
-      - name: {{ template "fullname" . }}
-        image: {{ .Values.redisImage }}
+      - image: jcbarrales/redis_exporter
+        imagePullPolicy: Always
+        name: redis-exporter
+        ports:
+        - containerPort: {{ .Values.redis.exporter.port }}
+          protocol: TCP
+        resources: 
+        {{- toYaml .Values.redis.exporter.resources | nindent 10 }}
+      - name: redis
+        image: {{ .Values.redis.image }}
         command: ["redis-server", "/conf/redis.conf"]
         securityContext:
           runAsUser: 0             
@@ -36,36 +54,11 @@ spec:
           mountPath: /conf
           readOnly: false      
         livenessProbe:
-          initialDelaySeconds: 25
-          periodSeconds: 5
-          timeoutSeconds: 5
-          successThreshold: 1
-          failureThreshold: 3
-          exec:
-            command:
-            - redis-cli
-            - -p 
-            - "6379"
-            - ping
+        {{- toYaml .Values.redis.livenessProbe | nindent 10 }}
         readinessProbe:
-          initialDelaySeconds: 5
-          periodSeconds: 5
-          timeoutSeconds: 5
-          successThreshold: 1
-          failureThreshold: 3
-          exec:
-            command:
-            - redis-cli
-            - -p 
-            - "6379"
-            - ping       
-        resources:
-          requests:
-            memory: "1500Mi"
-            cpu: "400m"
-          limits:
-            memory: "1500Mi"
-            cpu: "400m"    
+        {{- toYaml .Values.redis.readinessProbe | nindent 10 }}     
+        resources: 
+        {{- toYaml .Values.redis.resources | nindent 10 }}
         ports:
         - name: {{ template "fullname" . }}
           containerPort: 6379
